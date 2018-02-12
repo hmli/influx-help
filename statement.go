@@ -9,8 +9,6 @@ type Statement struct {
 	Start           int
 	LimitN          int
 	OrderStr        string
-	JoinStr         string
-	joinArgs        []interface{}
 	GroupByStr      string
 	HavingStr       string
 	ColumnStr       string
@@ -27,6 +25,19 @@ type Statement struct {
 	//IsDistinct      bool
 	TableAlias      string
 	cond            builder.Cond
+}
+
+func (stmt *Statement) Init() {
+	stmt.Start = 0
+	stmt.LimitN = 0
+	stmt.OrderStr = ""
+	stmt.GroupByStr = ""
+	stmt.HavingStr = ""
+	stmt.ColumnStr = ""
+	stmt.tableName = ""
+	stmt.RawSQL = ""
+	stmt.RawParams = make([]interface{}, 0)
+	stmt.cond = builder.NewCond()
 }
 
 func (stmt *Statement) SQL(query string, args ...interface{}) *Statement {
@@ -92,6 +103,10 @@ func (stmt *Statement) OrderBy(order string) *Statement {
 	}
 	stmt.OrderStr += order
 	return stmt
+}
+
+func (stmt *Statement) Query() (sql string) {
+	return
 }
 
 // TODO test Cols/Select, Cond, Limit

@@ -1,12 +1,13 @@
-package influx_help
+package influx_help
 
 import (
-	"github.com/influxdata/influxdb/models"
-	"github.com/influxdata/influxdb/client/v2"
-	"github.com/pkg/errors"
+	"errors"
 	"sort"
 	"strings"
+	"github.com/influxdata/influxdb/models"
+	"github.com/influxdata/influxdb/client/v2"
 )
+
 
 type InfluxHelp struct {}
 
