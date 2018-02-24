@@ -219,7 +219,7 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 
 }
 
-// TODO 1. Desc,Asc  2. GroupBy  
+// TODO 1. Desc,Asc  2. GroupBy
 
 var QuoteStr = "'"
 
