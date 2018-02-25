@@ -85,31 +85,36 @@ func (stmt *Statement) Or(query string, args ...interface{}) *Statement {
 	return stmt
 }
 
-func (stmt *Statement) In(column string, args ...interface{}) *Statement {
-	in := builder.In(column, args...)
-	stmt.cond = stmt.cond.And(in)
-	return stmt
-}
+//func (stmt *Statement) In(column string, args ...interface{}) *Statement {
+//	in := builder.In(column, args...)
+//	stmt.cond = stmt.cond.And(in)
+//	return stmt
+//}
 
-func (stmt *Statement) NotIn(column string, args ...interface{}) *Statement {
-	notIn := builder.NotIn(column, args...)
-	stmt.cond = stmt.cond.And(notIn)
-	return stmt
-}
+//func (stmt *Statement) NotIn(column string, args ...interface{}) *Statement {
+//	notIn := builder.NotIn(column, args...)
+//	stmt.cond = stmt.cond.And(notIn)
+//	return stmt
+//}
 
-func (stmt *Statement) Limit(limit int, start ...int) *Statement {
-	stmt.LimitN = limit
-	if len(start) > 0 {
-		stmt.Start = start[0]
-	}
-	return stmt
-}
+//func (stmt *Statement) Limit(limit int, start ...int) *Statement {
+//	stmt.LimitN = limit
+//	if len(start) > 0 {
+//		stmt.Start = start[0]
+//	}
+//	return stmt
+//}
 
 func (stmt *Statement) OrderBy(order string) *Statement {
 	if len(stmt.OrderStr) > 0 {
 		stmt.OrderStr += ", "
 	}
 	stmt.OrderStr += order
+	return stmt
+}
+
+func (stmt *Statement) GroupBy(keys string) *Statement {
+	stmt.GroupByStr = keys
 	return stmt
 }
 
@@ -148,9 +153,15 @@ func (stmt *Statement) selectSQLNoArgs(columnStr, condSQL string) string {
 		fmt.Fprintf(&buf, " WHERE %v", condSQL)
 	}
 	var whereStr = buf.String()
-	var fromStr = " FROM "
-	time.Now().Add(-24 * time.Hour)
-	return fmt.Sprintf("SELECT %v%v%v", columnStr, fromStr, whereStr)
+	var fromStr = " FROM " + stmt.tableName
+	a := fmt.Sprintf("SELECT %v%v%v", columnStr, fromStr, whereStr)
+	if len(stmt.OrderStr) > 0 {
+		a +=  " ORDER BY " + stmt.OrderStr
+	}
+	if len(stmt.GroupByStr) > 0 {
+		a += " GROUP BY " + stmt.GroupByStr
+	}
+	return a
 }
 
 func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, err error) {
@@ -219,10 +230,11 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 
 }
 
-// TODO 1. Desc,Asc  2. GroupBy
+// TODO limit
+// TODO 自动识别 tag/field, 并给 tag 里的值加''
 
-var QuoteStr = "'"
-
-func quote(sql string) string {
-	return QuoteStr + sql + QuoteStr
-}
+//var QuoteStr = "'"
+//
+//func quote(sql string) string {
+//	return QuoteStr + sql + QuoteStr
+//}
