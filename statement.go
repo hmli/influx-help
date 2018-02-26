@@ -97,13 +97,13 @@ func (stmt *Statement) Or(query string, args ...interface{}) *Statement {
 //	return stmt
 //}
 
-//func (stmt *Statement) Limit(limit int, start ...int) *Statement {
-//	stmt.LimitN = limit
-//	if len(start) > 0 {
-//		stmt.Start = start[0]
-//	}
-//	return stmt
-//}
+func (stmt *Statement) Limit(limit int, start ...int) *Statement {
+	stmt.LimitN = limit
+	if len(start) > 0 {
+		stmt.Start = start[0]
+	}
+	return stmt
+}
 
 func (stmt *Statement) OrderBy(order string) *Statement {
 	if len(stmt.OrderStr) > 0 {
@@ -161,11 +161,16 @@ func (stmt *Statement) selectSQLNoArgs(columnStr, condSQL string) string {
 	if len(stmt.GroupByStr) > 0 {
 		a += " GROUP BY " + stmt.GroupByStr
 	}
+	if stmt.Start > 0 {
+		a = fmt.Sprintf("%s LIMIT %v OFFSET %v", a, stmt.LimitN, stmt.Start)
+	} else if stmt.LimitN > 0 {
+		a = fmt.Sprintf("%s LIMIT %v", a, stmt.LimitN)
+	}
 	return a
 }
 
 func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, err error) {
-	// TODO 目前是用MySQL的格式拼接的，需测试改到influx格式
+	// TODO 目前是用MySQL的格式拼接的，需测试逐步改到influx格式
 	if strings.Count(query, "?") != len(args) {
 		return "", ErrSkip
 	}
@@ -230,8 +235,7 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 
 }
 
-// TODO limit
-// TODO 自动识别 tag/field, 并给 tag 里的值加''
+// TODO 自动识别 tag/field, 并给 tag 里的值加''  (schema 随时可能会变，暂没有好的方法
 
 //var QuoteStr = "'"
 //
