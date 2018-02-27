@@ -1,40 +1,43 @@
 package influx_help
 
 import (
-	"strings"
-	"github.com/go-xorm/builder"
-	"fmt"
 	"bytes"
-	"github.com/influxdata/influxdb/client/v2"
-	"time"
 	"errors"
+	"fmt"
+	"github.com/go-xorm/builder"
+	"github.com/influxdata/influxdb/client/v2"
 	"strconv"
+	"strings"
+	"time"
 )
+
 var ErrSkip = errors.New("skip fast-path; continue as if unimplemented")
+
 type Statement struct {
-	Start           int
-	LimitN          int
-	OrderStr        string
-	GroupByStr      string
-	HavingStr       string
-	ColumnStr       string
-	selectStr       string
+	Session *Session
+	Start      int
+	LimitN     int
+	OrderStr   string
+	GroupByStr string
+	HavingStr  string
+	ColumnStr  string
+	selectStr  string
 	//columnMap       map[string]bool
 	//useAllCols  bool
-	tableName       string
-	RawSQL          string // RawSQL 和 RawParams 优先级最高。 如果 RawSQL 不为空，就只使用RawSQL； 如果为空，才使用其它字段拼接
-	RawParams       []interface{}
+	tableName string
+	RawSQL    string // RawSQL 和 RawParams 优先级最高。 如果 RawSQL 不为空，就只使用RawSQL； 如果为空，才使用其它字段拼接
+	RawParams []interface{}
 	//UseCascade      bool
 	//Charset         string
-	UseAutoTime     bool
+	UseAutoTime bool
 	//noAutoCondition bool
 	//IsDistinct      bool
-	TableAlias      string
-	cond            builder.Cond
-	Database string
+	TableAlias string
+	cond       builder.Cond
+	//Database   string
 }
 
-func (stmt *Statement) Init(database string) {
+func (stmt *Statement) Init(sess *Session) {
 	stmt.Start = 0
 	stmt.LimitN = 0
 	stmt.OrderStr = ""
@@ -45,7 +48,7 @@ func (stmt *Statement) Init(database string) {
 	stmt.RawSQL = ""
 	stmt.RawParams = make([]interface{}, 0)
 	stmt.cond = builder.NewCond()
-	stmt.Database = database
+	stmt.Session = sess
 }
 
 func (stmt *Statement) SQL(query string, args ...interface{}) *Statement {
@@ -74,9 +77,9 @@ func (stmt *Statement) Where(query string, args ...interface{}) *Statement {
 }
 
 func (stmt *Statement) And(query string, args ...interface{}) *Statement {
-			cond := builder.Expr(query, args...)
-			stmt.cond = stmt.cond.And(cond)
-			return stmt
+	cond := builder.Expr(query, args...)
+	stmt.cond = stmt.cond.And(cond)
+	return stmt
 }
 
 func (stmt *Statement) Or(query string, args ...interface{}) *Statement {
@@ -129,9 +132,23 @@ func (stmt *Statement) Query() (query *client.Query, err error) {
 	if err != nil {
 		return nil, err
 	}
-	q := client.Query{Command: selectSQL, Database: stmt.Database}
+	q := client.Query{Command: selectSQL, Database: stmt.Session.Database}
 	return &q, nil
 }
+
+func (stmt *Statement) Find() (res *client.Response, err error) {
+	q, err := stmt.Query()
+	c, err := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     stmt.Session.DB.Addr,
+		Username: stmt.Session.DB.Username,
+		Password: stmt.Session.DB.Password,
+	})
+	if err != nil {
+		return
+	}
+	return c.Query(*q)
+}
+
 
 func (stmt *Statement) condSQL() (sql string, args []interface{}, err error) {
 	// TODO 先使用 xorm 自带的 builder，后面还需要修改，要补上一些 ' 等。
@@ -139,7 +156,7 @@ func (stmt *Statement) condSQL() (sql string, args []interface{}, err error) {
 	return
 }
 
-func (stmt *Statement) columnSQL() string{
+func (stmt *Statement) columnSQL() string {
 	if stmt.selectStr != "" {
 		return stmt.selectStr
 	}
@@ -156,7 +173,7 @@ func (stmt *Statement) selectSQLNoArgs(columnStr, condSQL string) string {
 	var fromStr = " FROM " + stmt.tableName
 	a := fmt.Sprintf("SELECT %v%v%v", columnStr, fromStr, whereStr)
 	if len(stmt.OrderStr) > 0 {
-		a +=  " ORDER BY " + stmt.OrderStr
+		a += " ORDER BY " + stmt.OrderStr
 	}
 	if len(stmt.GroupByStr) > 0 {
 		a += " GROUP BY " + stmt.GroupByStr
@@ -176,7 +193,7 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 	}
 	argPos := 0
 	buf := make([]byte, 0) // TODO buf pool
-	for i:=0; i<len(query); i++ {
+	for i := 0; i < len(query); i++ {
 		q := strings.IndexByte(query[i:], '?')
 		if q == -1 {
 			buf = append(buf, query[i:]...)
