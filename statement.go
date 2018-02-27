@@ -22,19 +22,12 @@ type Statement struct {
 	HavingStr  string
 	ColumnStr  string
 	selectStr  string
-	//columnMap       map[string]bool
-	//useAllCols  bool
 	tableName string
 	RawSQL    string // RawSQL 和 RawParams 优先级最高。 如果 RawSQL 不为空，就只使用RawSQL； 如果为空，才使用其它字段拼接
 	RawParams []interface{}
-	//UseCascade      bool
-	//Charset         string
 	UseAutoTime bool
-	//noAutoCondition bool
-	//IsDistinct      bool
 	TableAlias string
 	cond       builder.Cond
-	//Database   string
 }
 
 func (stmt *Statement) Init(sess *Session) {
@@ -122,15 +115,23 @@ func (stmt *Statement) GroupBy(keys string) *Statement {
 }
 
 func (stmt *Statement) Query() (query *client.Query, err error) {
-	condSQL, condArgs, err := stmt.condSQL()
-	if err != nil {
-		return nil, err
-	}
-	columnSQL := stmt.columnSQL()
-	queryStr := stmt.selectSQLNoArgs(columnSQL, condSQL)
-	selectSQL, err := stmt.selectSQL(queryStr, condArgs)
-	if err != nil {
-		return nil, err
+	var selectSQL string
+	if stmt.RawSQL != "" {
+		selectSQL, err = stmt.selectSQL(stmt.RawSQL, stmt.RawParams)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		condSQL, condArgs, err := stmt.condSQL()
+		if err != nil {
+			return nil, err
+		}
+		columnSQL := stmt.columnSQL()
+		queryStr := stmt.selectSQLNoArgs(columnSQL, condSQL)
+		selectSQL, err = stmt.selectSQL(queryStr, condArgs)
+		if err != nil {
+			return nil, err
+		}
 	}
 	q := client.Query{Command: selectSQL, Database: stmt.Session.Database}
 	return &q, nil

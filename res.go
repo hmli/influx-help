@@ -19,6 +19,7 @@ var (
 
 // !! 只考虑一次请求一条sql语句的情况
 
+// models.Row: 类似于 sql.Rows
 // NormalValues 普通的(非group by 语句)， 这时只有一个 series 中有值
 func NormalValues(res *client.Response) (data *models.Row, err error) {
 	if len(res.Results) == 0 {

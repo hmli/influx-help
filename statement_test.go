@@ -15,7 +15,8 @@ func TestSelectStr(t *testing.T) {
 	t.Log(query)
 	t.Log(stmt.selectSQL(query, condArgs))
 	stmt2 := Statement{}
-	stmt2.Init("testlog")
+	session := Session{Database:"testlog"}
+	stmt2.Init(&session)
 	stmt2.Table("oplog").Select("content").Where("id = ?", 3).GroupBy("action, id")
 	condSQL, condArgs, err = stmt2.condSQL()
 	query = stmt2.selectSQLNoArgs(stmt2.columnSQL(), condSQL)
