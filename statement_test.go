@@ -4,7 +4,8 @@ import "testing"
 
 func TestSelectStr(t *testing.T) {
 	stmt := Statement{}
-	stmt.Init("testlog")
+	session := Session{Database:"testlog"}
+	stmt.Init(&session)
 	stmt.Select("id, content")
 	stmt.Table("testlog")
 	stmt.And("id = ?", 5).And("price = ?", 3.4).Or("name = 'ddd'")
@@ -15,7 +16,6 @@ func TestSelectStr(t *testing.T) {
 	t.Log(query)
 	t.Log(stmt.selectSQL(query, condArgs))
 	stmt2 := Statement{}
-	session := Session{Database:"testlog"}
 	stmt2.Init(&session)
 	stmt2.Table("oplog").Select("content").Where("id = ?", 3).GroupBy("action, id")
 	condSQL, condArgs, err = stmt2.condSQL()

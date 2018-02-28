@@ -250,10 +250,10 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 		}
 	}
 	return string(buf), nil
-
 }
 
 // TODO 自动识别 tag/field, 并给 tag 里的值加''  (schema 随时可能会变，暂没有好的方法
+// TODO Insert (One, Many)
 
 //var QuoteStr = "'"
 //

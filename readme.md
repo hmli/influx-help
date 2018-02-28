@@ -1,5 +1,11 @@
 # Influx Help
 
+## TODO List
+
+* 增加 Insert (One, Many)
+* 继续测试并适配 Influx 版本的SQL
+
+
 Influx cilent 返回的 `models.Response` 结构有点复杂，不太好用，比如官方 demo 中的代码：
 
  ```
