@@ -3,7 +3,9 @@
 ## TODO List
 
 * 增加 Insert (One, Many)
-* 继续测试并适配 Influx 版本的SQL
+* 继续测试并适配 Influx 版本的 SQL 语句
+* 完善 test cases
+* 代码中的其它 "TODO"
 
 
 Influx cilent 返回的 `models.Response` 结构有点复杂，不太好用，比如官方 demo 中的代码：
