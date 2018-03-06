@@ -1,10 +1,25 @@
 package influx_help
 
+import "go.uber.org/zap"
 
 type DB struct {
 	Addr string
 	Username string
 	Password string
+	ShowSQL bool
+	Logger *zap.Logger
+}
+
+func NewDB(address, username, password string) *DB {
+	logger, _ := zap.NewProduction()
+	db := DB {
+		Addr: address,
+		Username: username,
+		Password: password,
+		ShowSQL: false,
+		Logger: logger,
+	}
+	return &db
 }
 
 func (db *DB) NewSession(database, precision string) (sess *Session) {

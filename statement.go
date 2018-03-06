@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"go.uber.org/zap"
 )
 
 var ErrSkip = errors.New("skip fast-path; continue as if unimplemented")
@@ -132,6 +133,10 @@ func (stmt *Statement) Query() (query *client.Query, err error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+	if stmt.Session.DB.ShowSQL {
+		stmt.Session.DB.Logger.Info("show select SQL", zap.String("sql", selectSQL))
+		// TODO show sql
 	}
 	q := client.Query{Command: selectSQL, Database: stmt.Session.Database}
 	return &q, nil
