@@ -51,9 +51,13 @@ func (stmt *Statement) SQL(query string, args ...interface{}) *Statement {
 	return stmt
 }
 
-func (stmt *Statement) Table(name string) *Statement {
+func (stmt *Statement) Measurement(name string) *Statement {
 	stmt.tableName = name
 	return stmt
+}
+
+func (stmt *Statement) Table(name string) *Statement {
+	return stmt.Measurement(name)
 }
 
 func (stmt *Statement) Cols(columns ...string) *Statement {
@@ -166,6 +170,9 @@ func (stmt *Statement) columnSQL() string {
 	if stmt.selectStr != "" {
 		return stmt.selectStr
 	}
+	if stmt.ColumnStr == "" {
+		stmt.ColumnStr = "*"
+	}
 	return stmt.ColumnStr
 }
 
@@ -260,8 +267,3 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 // TODO 自动识别 tag/field, 并给 tag 里的值加''  (schema 随时可能会变，暂没有好的方法
 // TODO Insert (One, Many)
 
-//var QuoteStr = "'"
-//
-//func quote(sql string) string {
-//	return QuoteStr + sql + QuoteStr
-//}

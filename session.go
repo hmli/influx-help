@@ -38,8 +38,8 @@ type Session struct {
 
 func (sess *Session) Measurement(m string) (stmt *Statement) {
 	stmt = new(Statement)
-	stmt.Session = sess
 	stmt.Init(sess)
+	stmt.Measurement(m)
 	return
 }
 

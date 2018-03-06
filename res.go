@@ -107,7 +107,6 @@ func TagEncode(tags map[string]string) (key string) {
 	sort.Strings(tagList)
 	key = strings.Join(tagList, ",")
 	return
-
 }
 
 // TagDecode 上面TagEncode的逆过程
