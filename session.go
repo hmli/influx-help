@@ -1,6 +1,9 @@
 package influx_help
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+	"github.com/influxdata/influxdb/client/v2"
+)
 
 type DB struct {
 	Addr string
@@ -8,16 +11,26 @@ type DB struct {
 	Password string
 	ShowSQL bool
 	Logger *zap.Logger
+	client client.Client
 }
 
 func NewDB(address, username, password string) *DB {
-	logger, _ := zap.NewProduction()
+	logger, _ := zap.NewProduction() // TODO logger
+	c, err := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     address,
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		panic(err)
+	}
 	db := DB {
 		Addr: address,
 		Username: username,
 		Password: password,
 		ShowSQL: false,
 		Logger: logger,
+		client: c,
 	}
 	return &db
 }

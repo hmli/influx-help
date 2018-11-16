@@ -43,6 +43,8 @@ func (stmt *Statement) Init(sess *Session) {
 	stmt.RawParams = make([]interface{}, 0)
 	stmt.cond = builder.NewCond()
 	stmt.Session = sess
+	fmt.Printf("Measurement: %+v \n", sess)
+	fmt.Println("INIT: ", stmt.Session)
 }
 
 func (stmt *Statement) SQL(query string, args ...interface{}) *Statement {
@@ -140,7 +142,6 @@ func (stmt *Statement) Query() (query *client.Query, err error) {
 	}
 	if stmt.Session.DB.ShowSQL {
 		stmt.Session.DB.Logger.Info("show select SQL", zap.String("sql", selectSQL))
-		// TODO show sql
 	}
 	q := client.Query{Command: selectSQL, Database: stmt.Session.Database}
 	return &q, nil
@@ -148,17 +149,11 @@ func (stmt *Statement) Query() (query *client.Query, err error) {
 
 func (stmt *Statement) Find() (res *client.Response, err error) {
 	q, err := stmt.Query()
-	c, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr:     stmt.Session.DB.Addr,
-		Username: stmt.Session.DB.Username,
-		Password: stmt.Session.DB.Password,
-	})
 	if err != nil {
 		return
 	}
-	return c.Query(*q)
+	return stmt.Session.DB.client.Query(*q)
 }
-
 
 func (stmt *Statement) condSQL() (sql string, args []interface{}, err error) {
 	// TODO 先使用 xorm 自带的 builder，后面还需要修改，要补上一些 ' 等。
@@ -265,5 +260,24 @@ func (stmt *Statement) selectSQL(query string, args []interface{}) (a string, er
 }
 
 // TODO 自动识别 tag/field, 并给 tag 里的值加''  (schema 随时可能会变，暂没有好的方法
-// TODO Insert (One, Many)
+// TODO Insert Many
+
+func (stmt *Statement) InsertOne(tags map[string]string, fields map[string]interface{}, t ...time.Time) error {
+	fmt.Printf("stmt: %+v \n",stmt)
+	fmt.Println(stmt.Session)
+
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  stmt.Session.Database,
+		Precision: "us",
+	})
+	if err != nil {
+		return err
+	}
+	pt, err := client.NewPoint(stmt.tableName, tags, fields, t...)
+	if err != nil {
+		return err
+	}
+	bp.AddPoint(pt)
+	return stmt.Session.DB.client.Write(bp)
+}
 

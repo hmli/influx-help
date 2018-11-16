@@ -8,8 +8,7 @@ import (
 	"github.com/influxdata/influxdb/client/v2"
 )
 
-
-type InfluxHelp struct {}
+// 从influx中接收到的数据是 client.Response 格式， 这个文件中提供了一些从中取数据的便利函数
 
 var (
 	ErrNoResult = errors.New("err: No result")
@@ -51,12 +50,12 @@ func GroupValues(res *client.Response) (data map[string]*models.Row, err error) 
 }
 
 // MapValues 根据row中的Column和Value,  将 Column []string 和 Values [][]interface{} 组装成 []map[string]interface{}
-func MapValues(row *models.Row) (data []map[string]interface{}, err error) {
+func MapValues(row *models.Row) (data []map[string]interface{}) {
 	if len(row.Values) == 0{
-		return data, nil
+		return
 	}
 	if len(row.Columns) != len(row.Values[0]) {
-		return nil, ErrInconsistent
+		return
 	}
 	for _, value := range row.Values {
 		colValue := make(map[string]interface{})
@@ -65,7 +64,7 @@ func MapValues(row *models.Row) (data []map[string]interface{}, err error) {
 		}
 		data = append(data, colValue)
 	}
-	return data, nil
+	return data
 }
 
 func ColToMap(columns []string, value []interface{}) (data map[string]interface{}, err error) {
