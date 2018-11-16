@@ -19,14 +19,14 @@ func Test_lserver(t *testing.T) {
 	})
 	res, err := sess.Table("temperature").Where("action = ?", "view").Limit(3).Find()
 	t.Log(err, res)
-	row, err := NormalValues(res)
+	row, err := NormalRow(res)
 	t.Log(err)
 	for _, values := range row.Values {
 		t.Log(values)
 	}
 	res2, err := sess.Table("temperature").GroupBy("action").Find()
 	t.Log(res2, err)
-	row2, err := GroupValues(res2)
+	row2, err := GroupRows(res2)
 	t.Log(err)
 	for k, r := range row2{
 		for _, values := range r.Values {

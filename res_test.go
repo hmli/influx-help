@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var u = "http://192.168.15.95:8086"
+var u = "http://192.168.12.137:8086"
 
 
 
@@ -16,13 +16,13 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	q := "SELECT content FROM oplog group by action,id"
+	q := "SELECT content FROM test_log group by action,id"
 	t.Log(q)
 	res, err := queryDB(c, q)
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := GroupValues(res)
+	data, err := GroupRows(res)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,23 +48,20 @@ func TestNormalAndMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	q := "select * from oplog where id='1'"
+	q := "select * from test_log where id='1'"
 	t.Log(q)
 	res, err := queryDB(c, q)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// NormalValues
-	rows, err := NormalValues(res)
+	rows, err := NormalRow(res)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", rows)
 	// MapValues
-	data ,err := MapValues(rows)
-	if err != nil {
-		t.Fatal(err)
-	}
+	data  := MapValues(rows)
 	t.Logf("%+v", data)
 	if len(data) != len(rows.Values) {
 		t.FailNow()

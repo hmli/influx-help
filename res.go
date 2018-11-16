@@ -19,8 +19,8 @@ var (
 // !! 只考虑一次请求一条sql语句的情况
 
 // models.Row: 类似于 sql.Rows
-// NormalValues 普通的(非group by 语句)， 这时只有一个 series 中有值
-func NormalValues(res *client.Response) (data *models.Row, err error) {
+// NormalRow 普通的(非group by 语句)， 这时只有一个 series 中有值
+func NormalRow(res *client.Response) (data *models.Row, err error) {
 	if len(res.Results) == 0 {
 		return nil, ErrNoResult
 	}
@@ -31,9 +31,9 @@ func NormalValues(res *client.Response) (data *models.Row, err error) {
 	return &series[0], nil
 }
 
-// GroupValues GroupBy 语句返回的数据， 这时会有多个series, 每一个series使用相应的tags区分。
+// GroupRows GroupBy 语句返回的数据， 这时会有多个series, 每一个series使用相应的tags区分。
 // 因此返回值是将所有tags encode 成一个字符串作Key的map
-func GroupValues(res *client.Response) (data map[string]*models.Row, err error) {
+func GroupRows(res *client.Response) (data map[string]*models.Row, err error) {
 	if len(res.Results) == 0 {
 		return nil, ErrNoResult
 	}
